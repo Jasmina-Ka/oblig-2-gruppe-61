@@ -1,0 +1,27 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: prosjekt-postgres
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin123
+      POSTGRES_DB: regnskap
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data_prosjekt:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+      - ./test-scripts:/test-scripts
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d regnskap"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data_prosjekt:
+    driver: local
+
+networks:
+  data1500-network:
+    driver: bridge
