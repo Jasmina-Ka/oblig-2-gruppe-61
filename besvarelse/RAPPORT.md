@@ -2,7 +2,11 @@
 
 ---
 
-🔹 Innledning
+Denne rapporten dokumenterer arbeidet utført i DATA1500 og gir en oversikt over løsninger, analyser og refleksjoner knyttet til oppgavene.
+
+---
+
+### 🔹 Innledning
 
 I dette prosjektet har jeg jobbet med en rekke oppgaver knyttet til databaser, med fokus på datamodellering, transaksjoner, ytelse, sikkerhet og moderne systemarkitektur. Gjennom oppgavene har jeg brukt PostgreSQL som relasjonsdatabase, samt teknologier som Redis og MongoDB for caching og staging.
 
