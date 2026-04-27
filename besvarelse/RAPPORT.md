@@ -4,11 +4,11 @@
 
 🔹 Innledning
 
-I dette prosjektet har vi jobbet med en rekke oppgaver knyttet til databaser, med fokus på datamodellering, transaksjoner, ytelse, sikkerhet og moderne systemarkitektur. Gjennom oppgavene har vi brukt PostgreSQL som relasjonsdatabase, samt teknologier som Redis og MongoDB for caching og staging.
+I dette prosjektet har jeg jobbet med en rekke oppgaver knyttet til databaser, med fokus på datamodellering, transaksjoner, ytelse, sikkerhet og moderne systemarkitektur. Gjennom oppgavene har jeg brukt PostgreSQL som relasjonsdatabase, samt teknologier som Redis og MongoDB for caching og staging.
 
 Målet med prosjektet har vært å oppnå en praktisk forståelse av hvordan databaser fungerer i virkelige systemer, og hvordan ulike teknologier kan kombineres for å lage robuste, effektive og skalerbare løsninger.
 
-Oppgavene bygger på hverandre, fra grunnleggende datamodellering og normalisering, til mer avanserte temaer som samtidighet, feilhåndtering, ytelsesoptimalisering og ETL-pipelines.
+Oppgavene bygger på hverandre, fra grunnleggende datamodellering og normalisering til mer avanserte temaer som samtidighet, feilhåndtering, ytelsesoptimalisering og ETL-pipeliner.
 
 ---
 
