@@ -6,7 +6,7 @@ Oppgave 10: NS 4102 Regnskapssystem
 import logging
 import uuid
 from contextlib import contextmanager
-from datetime import date, datetime
+from datetime import date
 from decimal import Decimal
 from typing import Optional
 
@@ -17,10 +17,6 @@ from config import DB
 
 log = logging.getLogger(__name__)
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Tilkoblingsadministrasjon
-# ─────────────────────────────────────────────────────────────────────────────
 
 @contextmanager
 def db_tilkobling():
@@ -47,61 +43,80 @@ def ny_guid() -> str:
     return uuid.uuid4().hex
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Skjemainitialisering
-# ─────────────────────────────────────────────────────────────────────────────
-
 SKJEMA_SQL = """
 -- ============================================================
 -- NS 4102 Regnskapssystem — Forenklet skjema for Oppgave 10A
 -- Fokus: Valutaer og Valutakurser (prices-tabellen)
 -- ============================================================
 
--- Valutaer (commodities i GnuCash-terminologi)
 CREATE TABLE IF NOT EXISTS "Valutaer" (
     guid        CHAR(32)     PRIMARY KEY,
-    kode        VARCHAR(10)  NOT NULL UNIQUE,   -- ISO 4217 (NOK, USD, EUR)
+    kode        VARCHAR(10)  NOT NULL UNIQUE,
     navn        VARCHAR(100) NOT NULL,
     fraksjon    INTEGER      NOT NULL DEFAULT 100,
     er_aktiv    BOOLEAN      NOT NULL DEFAULT TRUE,
     opprettet   TIMESTAMPTZ  NOT NULL DEFAULT NOW()
 );
 
--- Valutakurser (prices-tabellen i GnuCash)
--- Lagrer historiske kurser mellom to valutaer
 CREATE TABLE IF NOT EXISTS "Valutakurser" (
     guid            CHAR(32)     PRIMARY KEY,
     fra_valuta_guid CHAR(32)     NOT NULL REFERENCES "Valutaer"(guid),
     til_valuta_guid CHAR(32)     NOT NULL REFERENCES "Valutaer"(guid),
     kursdato        DATE         NOT NULL,
-    kurs_teller     BIGINT       NOT NULL,   -- Brøkrepresentasjon
+    kurs_teller     BIGINT       NOT NULL,
     kurs_nevner     BIGINT       NOT NULL DEFAULT 1000000,
     kurstype        VARCHAR(20)  NOT NULL DEFAULT 'last'
                     CHECK (kurstype IN ('last', 'bid', 'ask', 'nav', 'transaction')),
     kilde           VARCHAR(50)  NOT NULL DEFAULT 'manuell',
     hentet_tid      TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
-    -- En kurs per valutapar per dato og type
     UNIQUE (fra_valuta_guid, til_valuta_guid, kursdato, kurstype)
 );
 
--- Indekser for ytelse
 CREATE INDEX IF NOT EXISTS idx_valutakurser_dato
     ON "Valutakurser" (kursdato DESC);
+
 CREATE INDEX IF NOT EXISTS idx_valutakurser_par
     ON "Valutakurser" (fra_valuta_guid, til_valuta_guid);
 
--- Kurslogg — sporer alle cache-hendelser (pedagogisk formål)
 CREATE TABLE IF NOT EXISTS "Kurslogg" (
     id              SERIAL       PRIMARY KEY,
-    valutapar       VARCHAR(20)  NOT NULL,   -- f.eks. 'USD:NOK'
-    hendelse        VARCHAR(20)  NOT NULL    -- 'CACHE_HIT', 'CACHE_MISS', 'API_FEIL'
+    fra_valuta      VARCHAR(10),
+    til_valuta      VARCHAR(10),
+    valutapar       VARCHAR(20),
+    hendelse        VARCHAR(20)  NOT NULL
                     CHECK (hendelse IN ('CACHE_HIT', 'CACHE_MISS', 'API_FEIL', 'DB_OPPDATERT')),
-    kurs            NUMERIC(18,6),           -- NULL ved feil
-    kilde           VARCHAR(100),           -- ← la til denne linjen 2026-04-03
-    ttl_sekunder    INTEGER,                 -- Gjenværende TTL ved cache-hit
-    responstid_ms   INTEGER,                 -- API-responstid (NULL ved cache-hit)
+    kurs            NUMERIC(18,6),
+    kilde           VARCHAR(100),
+    ttl_sekunder    INTEGER,
+    responstid_ms   INTEGER,
     tidspunkt       TIMESTAMPTZ  NOT NULL DEFAULT NOW()
 );
+
+-- Sikrer at eldre Kurslogg-tabeller fra tidligere kjøringer også får riktig struktur
+ALTER TABLE "Kurslogg"
+    ADD COLUMN IF NOT EXISTS fra_valuta VARCHAR(10);
+
+ALTER TABLE "Kurslogg"
+    ADD COLUMN IF NOT EXISTS til_valuta VARCHAR(10);
+
+ALTER TABLE "Kurslogg"
+    ADD COLUMN IF NOT EXISTS valutapar VARCHAR(20);
+
+ALTER TABLE "Kurslogg"
+    ADD COLUMN IF NOT EXISTS kilde VARCHAR(100);
+
+ALTER TABLE "Kurslogg"
+    ADD COLUMN IF NOT EXISTS ttl_sekunder INTEGER;
+
+ALTER TABLE "Kurslogg"
+    ADD COLUMN IF NOT EXISTS responstid_ms INTEGER;
+
+-- Fjerner gamle NOT NULL-krav dersom tabellen ble laget i en tidligere versjon
+ALTER TABLE "Kurslogg"
+    ALTER COLUMN fra_valuta DROP NOT NULL;
+
+ALTER TABLE "Kurslogg"
+    ALTER COLUMN til_valuta DROP NOT NULL;
 """
 
 
@@ -111,17 +126,17 @@ def initialiser_skjema():
         with conn.cursor() as cur:
             cur.execute(SKJEMA_SQL)
 
-            # Legg til grunnvalutaer (INSERT OR IGNORE-mønster)
             valutaer = [
-                (ny_guid(), 'NOK', 'Norske kroner',    100),
+                (ny_guid(), 'NOK', 'Norske kroner', 100),
                 (ny_guid(), 'USD', 'Amerikanske dollar', 100),
-                (ny_guid(), 'EUR', 'Euro',              100),
-                (ny_guid(), 'GBP', 'Britiske pund',     100),
-                (ny_guid(), 'SEK', 'Svenske kroner',    100),
-                (ny_guid(), 'DKK', 'Danske kroner',     100),
-                (ny_guid(), 'CHF', 'Sveitsiske franc',  100),
-                (ny_guid(), 'JPY', 'Japanske yen',      1),
+                (ny_guid(), 'EUR', 'Euro', 100),
+                (ny_guid(), 'GBP', 'Britiske pund', 100),
+                (ny_guid(), 'SEK', 'Svenske kroner', 100),
+                (ny_guid(), 'DKK', 'Danske kroner', 100),
+                (ny_guid(), 'CHF', 'Sveitsiske franc', 100),
+                (ny_guid(), 'JPY', 'Japanske yen', 1),
             ]
+
             for guid, kode, navn, fraksjon in valutaer:
                 cur.execute("""
                     INSERT INTO "Valutaer" (guid, kode, navn, fraksjon)
@@ -131,10 +146,6 @@ def initialiser_skjema():
 
     log.info("Skjema initialisert og grunnvalutaer lagt til")
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Kursoperasjoner
-# ─────────────────────────────────────────────────────────────────────────────
 
 def hent_valuta_guid(kode: str) -> Optional[str]:
     """Henter GUID for en valuta basert på ISO 4217-kode."""
@@ -148,27 +159,32 @@ def hent_valuta_guid(kode: str) -> Optional[str]:
             return rad[0] if rad else None
 
 
-def lagre_kurs_atomisk(fra_kode: str, til_kode: str,
-                        kurs: Decimal, kilde: str = 'api') -> bool:
+def lagre_kurs_atomisk(
+    fra_kode: str,
+    til_kode: str,
+    kurs: Decimal,
+    kilde: str = 'api'
+) -> bool:
     """
     Lagrer en valutakurs i PostgreSQL innenfor en atomisk transaksjon.
     Bruker INSERT ... ON CONFLICT DO UPDATE for idempotens.
-
-    Returnerer True ved suksess, False ved feil.
     """
     try:
+        fra_kode = fra_kode.upper()
+        til_kode = til_kode.upper()
+        valutapar = f"{fra_kode}:{til_kode}"
+
         with db_tilkobling() as conn:
             with conn.cursor() as cur:
-                # Hent GUIDs for begge valutaer
                 cur.execute(
                     'SELECT guid FROM "Valutaer" WHERE kode = %s',
-                    (fra_kode.upper(),)
+                    (fra_kode,)
                 )
                 fra_rad = cur.fetchone()
 
                 cur.execute(
                     'SELECT guid FROM "Valutaer" WHERE kode = %s',
-                    (til_kode.upper(),)
+                    (til_kode,)
                 )
                 til_rad = cur.fetchone()
 
@@ -179,11 +195,9 @@ def lagre_kurs_atomisk(fra_kode: str, til_kode: str,
                 fra_guid = fra_rad[0]
                 til_guid = til_rad[0]
 
-                # Brøkrepresentasjon: kurs * 1_000_000 / 1_000_000
                 nevner = 1_000_000
                 teller = int(kurs * nevner)
 
-                # Atomisk upsert — INSERT eller UPDATE hvis dato+type allerede finnes
                 cur.execute("""
                     INSERT INTO "Valutakurser"
                         (guid, fra_valuta_guid, til_valuta_guid,
@@ -191,17 +205,30 @@ def lagre_kurs_atomisk(fra_kode: str, til_kode: str,
                     VALUES (%s, %s, %s, %s, %s, %s, 'last', %s)
                     ON CONFLICT (fra_valuta_guid, til_valuta_guid, kursdato, kurstype)
                     DO UPDATE SET
-                        kurs_teller  = EXCLUDED.kurs_teller,
-                        kilde        = EXCLUDED.kilde,
-                        hentet_tid   = NOW()
-                """, (ny_guid(), fra_guid, til_guid,
-                      date.today(), teller, nevner, kilde))
+                        kurs_teller = EXCLUDED.kurs_teller,
+                        kilde = EXCLUDED.kilde,
+                        hentet_tid = NOW()
+                """, (
+                    ny_guid(),
+                    fra_guid,
+                    til_guid,
+                    date.today(),
+                    teller,
+                    nevner,
+                    kilde
+                ))
 
-                # Logg hendelsen
                 cur.execute("""
-                    INSERT INTO "Kurslogg" (valutapar, hendelse, kurs, kilde)
-                    VALUES (%s, 'DB_OPPDATERT', %s, %s)
-                """, (f"{fra_kode}:{til_kode}", float(kurs), kilde))
+                    INSERT INTO "Kurslogg"
+                        (fra_valuta, til_valuta, valutapar, hendelse, kurs, kilde)
+                    VALUES (%s, %s, %s, 'DB_OPPDATERT', %s, %s)
+                """, (
+                    fra_kode,
+                    til_kode,
+                    valutapar,
+                    float(kurs),
+                    kilde
+                ))
 
         log.info(f"Kurs lagret atomisk: {fra_kode}/{til_kode} = {kurs:.6f}")
         return True
@@ -221,26 +248,35 @@ def logg_cache_hendelse(
 ):
     """Registrerer en cache-hendelse i Kurslogg-tabellen."""
     try:
+        fra_kode, til_kode = valutapar.upper().split(":", 1)
+
         with db_tilkobling() as conn:
             with conn.cursor() as cur:
                 cur.execute("""
                     INSERT INTO "Kurslogg"
-                        (valutapar, hendelse, kurs, kilde, ttl_sekunder, responstid_ms)
-                    VALUES (%s, %s, %s, %s, %s, %s)
+                        (fra_valuta, til_valuta, valutapar,
+                         hendelse, kurs, kilde, ttl_sekunder, responstid_ms)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                 """, (
-                    valutapar,
+                    fra_kode,
+                    til_kode,
+                    f"{fra_kode}:{til_kode}",
                     hendelse,
                     kurs,
                     kilde,
                     ttl,
                     responstid_ms
                 ))
+
     except Exception as e:
         log.warning(f"Kunne ikke logge cache-hendelse: {e}")
 
 
-def hent_kurshistorikk(fra_kode: str, til_kode: str,
-                        antall_dager: int = 30) -> list[dict]:
+def hent_kurshistorikk(
+    fra_kode: str,
+    til_kode: str,
+    antall_dager: int = 30
+) -> list[dict]:
     """Henter kurshistorikk for et valutapar fra PostgreSQL."""
     with db_tilkobling() as conn:
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
@@ -255,7 +291,7 @@ def hent_kurshistorikk(fra_kode: str, til_kode: str,
                 JOIN "Valutaer" til ON til.guid = vk.til_valuta_guid
                 WHERE fra.kode = %s
                   AND til.kode = %s
-                  AND vk.kursdato >= CURRENT_DATE - INTERVAL '%s days'
+                  AND vk.kursdato >= CURRENT_DATE - (%s * INTERVAL '1 day')
                 ORDER BY vk.kursdato DESC
             """, (fra_kode.upper(), til_kode.upper(), antall_dager))
             return [dict(r) for r in cur.fetchall()]
@@ -268,10 +304,10 @@ def hent_cache_statistikk() -> dict:
             cur.execute("""
                 SELECT
                     hendelse,
-                    COUNT(*)                        AS antall,
-                    AVG(responstid_ms)             AS snitt_responstid_ms,
-                    MIN(tidspunkt)                 AS foerste,
-                    MAX(tidspunkt)                 AS siste
+                    COUNT(*) AS antall,
+                    AVG(responstid_ms) AS snitt_responstid_ms,
+                    MIN(tidspunkt) AS foerste,
+                    MAX(tidspunkt) AS siste
                 FROM "Kurslogg"
                 WHERE hendelse IS NOT NULL
                 GROUP BY hendelse
@@ -281,7 +317,7 @@ def hent_cache_statistikk() -> dict:
 
             cur.execute("""
                 SELECT
-                    COUNT(*) FILTER (WHERE hendelse = 'CACHE_HIT')  AS hits,
+                    COUNT(*) FILTER (WHERE hendelse = 'CACHE_HIT') AS hits,
                     COUNT(*) FILTER (WHERE hendelse = 'CACHE_MISS') AS misses
                 FROM "Kurslogg"
                 WHERE hendelse IN ('CACHE_HIT', 'CACHE_MISS')
