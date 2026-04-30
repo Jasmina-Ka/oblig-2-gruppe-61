@@ -16,7 +16,9 @@ Oppgavene bygger på hverandre, fra grunnleggende datamodellering og normaliseri
 
 ---
 
-## Oppgave 1: Implementasjon av datamodellen, mermaid-diagrammet og normalform
+## Oppgave 1: Implementasjon av datamodellen, mermaid-diagrammet og normalform6
+
+---
 
 ### Del B – Mermaid-diagram
 
@@ -147,6 +149,8 @@ Jeg forenkler kanskje litt, men det virker ganske tydelig at ytelsen kan forbedr
 
 ## Oppgave 6: Databaseadministrasjon og tilgangskontroll
 
+---
+
 I denne oppgaven ble det implementert en sikkerhetsmodell i PostgreSQL ved hjelp av roller, brukere, `GRANT`/`REVOKE` og Row Level Security (RLS).
 
 Det ble opprettet fire roller:
@@ -167,7 +171,7 @@ I tillegg ble det opprettet fire brukere som ble tilordnet disse rollene:
 
 ### 🔹 Forskjellen mellom ROLE og USER
 
-I PostgreSQL er en `USER` egentlig en rolle med innloggingsrett (`LOGIN`). En `ROLE` kan være enten en ren rolle (uten login) eller en bruker. Dette gjør det mulig å skille mellom identitet (bruker) og rettigheter (rolle).
+I PostgreSQL er en USER egentlig en rolle med innloggingsrettigheter (LOGIN). En `ROLE` kan være enten en ren rolle (uten login) eller en bruker. Dette gjør det mulig å skille mellom identitet (bruker) og rettigheter (rolle).
 
 ---
 
@@ -193,7 +197,7 @@ Dette reduserer risikoen for feil og uautorisert tilgang.
 
 ### 🔹 Row Level Security (RLS)
 
-RLS ble aktivert på tabellen `Transaksjoner`. Dette gir mer detaljert tilgangskontroll enn vanlige `GRANT`-rettigheter.
+RLS ble aktivert på tabellen `Transaksjoner`. Dette sikrer at tilgangskontroll håndheves direkte på databasenivå, uavhengig av applikasjonslogikk. Dette gir mer detaljert tilgangskontroll enn vanlige `GRANT`-rettigheter.
 
 Det ble opprettet to policies:
 
@@ -206,14 +210,18 @@ Fordelen med RLS er at man kan begrense hvilke rader en bruker ser, ikke bare hv
 
 ### 🔹 Konklusjon
 
-Oppgaven viser hvordan tilgangskontroll kan implementeres på en strukturert måte i PostgreSQL ved hjelp av roller og RLS.
+Oppgaven viser hvordan tilgangskontroll kan implementeres på en strukturert, sikker og fleksibel måte i PostgreSQL ved hjelp av roller og RLS.
 
-Jeg forenkler kanskje litt, men det virker tydelig at denne typen oppsett gjør systemet både sikrere og enklere å administrere. Ved å kombinere roller og radnivåkontroll får man en fleksibel løsning som kan tilpasses ulike behov i praksis.
+Dette gjør det mulig å styre tilgang på en oversiktlig måte, samtidig som sensitive data beskyttes.
+
+Jeg opplever at oppgaven gir en bedre forståelse av hvordan slike mekanismer fungerer i praksis, og hvorfor de er viktige i større systemer.
 
 
 ---
 
 ## Oppgave 7: Atomisk Regnskapspostering (K10.1, K10.2) 
+
+---
 
 ### 🔹 Scenario A – Vellykket postering
 
@@ -292,6 +300,8 @@ Jeg forenkler kanskje litt, men det virker ganske tydelig at uten denne typen ko
 
 ## Oppgave 8: Feilhåndtering og Gjenoppbygging (K10.3, K10.4, K10.5, K10.6)
 
+---
+
 ### 8a: Teoretisk del
 
 ### 🔹 Hvilke transaksjoner må gjøres om, og hvilke må angres?
@@ -335,9 +345,13 @@ Jeg forenkler kanskje litt, men det virker ganske tydelig at disse mekanismene e
 
 ## Oppgave 9 – Samtidige transaksjoner og tapt oppdatering
 
+---
+
 🔹 Beskrivelse av løsningen
 
 I denne oppgaven så vi på problemet med tapt oppdatering ved bruk av samtidige transaksjoner i PostgreSQL. Jeg laget et Python-program som simulerer to brukere, Ane og Bjørn, som oppdaterer den samme kontoen samtidig. Programmet kjørte med to tråder og separate databasetilkoblinger for å sikre at det faktisk skjedde parallelt.
+
+---
 
 🔹 Scenario A – INSERT-basert modell
 
@@ -345,12 +359,14 @@ I det første scenariet brukte vi en INSERT-basert modell. Her lagres ikke saldo
 
 Begge trådene:
 
-leste samme saldo
-la til hver sin postering med INSERT
+- leste samme saldo
+- og la til hver sin postering med INSERT
 
-Ingenting gikk tapt, siden INSERT bare legger til nye rader uten å overskrive eksisterende data. Det virker som denne typen design håndterer samtidighet ganske bra av seg selv.
+Ingenting gikk tapt, siden INSERT bare legger til nye rader uten å overskrive eksisterende data. Denne typen design håndterer samtidighet godt av seg selv.
 
 Dette fungerte helt fint, uten problemer.
+
+---
 
 🔹 Scenario B1 – UPDATE uten låsing
 
@@ -358,25 +374,33 @@ I neste del, scenario B1, brukte vi den klassiske metoden med UPDATE uten noen f
 
 Hver tråd:
 
-leste verdien
-beregnet en ny verdi
-skrev den tilbake
+- leste verdien
+- beregnet en ny verdi
+- og skrev den tilbake
 
 Siden det ikke var noen låsing, overskrev den siste transaksjonen den første. Den forventede saldoen var 264 625 kr, men resultatet ble 261 625 kr. Det betyr at 3 000 kr gikk tapt i oppdateringen.
 
-Dette viser ganske tydelig hvordan ting fort kan gå galt når flere oppdateringer skjer samtidig uten kontroll.
+Dette viser tydelig hvor galt det kan gå når flere oppdateringer skjer samtidig uten kontroll.
+
+---
 
 🔹 Scenario B2 – UPDATE med SELECT FOR UPDATE
 
 For å løse dette, brukte vi SELECT FOR UPDATE i scenario B2. Dette låser raden slik at den andre tråden må vente.
 
-Da ble begge oppdateringene gjennomført riktig, og saldoen ble korrekt. Det virker som låsing er helt nødvendig når man bruker UPDATE i slike tilfeller.
+Begge oppdateringene ble da gjennomført riktig, og saldoen ble korrekt. Dette viser at låsing er nødvendig når man bruker UPDATE i slike tilfeller.
+
+---
 
 🔹 Sammenligning av scenarier
 
-INSERT-basert modell unngår problemet helt
-UPDATE uten låsing fører til tapt oppdatering
-UPDATE med SELECT FOR UPDATE gir korrekt resultat
+INSERT-basert modell unngår problemet helt.
+
+UPDATE uten låsing fører til tapt oppdatering.
+
+UPDATE med SELECT FOR UPDATE gir korrekt resultat.
+
+---
 
 🔹 Konklusjon
 
@@ -384,15 +408,19 @@ Oppgaven gjorde det tydelig hvordan ulike tilnærminger påvirker datakonsistens
 
 Tapt oppdatering oppstår lett ved bruk av UPDATE uten kontrollmekanismer, mens INSERT-baserte systemer unngår dette gjennom selve designet. Ved bruk av UPDATE er det derfor viktig å bruke låsing, som SELECT FOR UPDATE, for å sikre at data forblir konsistent.
 
-Jeg forenkler kanskje litt, men det virker ganske tydelig at riktig håndtering av samtidighet er helt avgjørende i databasesystemer. Det blir spesielt klart når man faktisk ser det skje i praksis i programmet.
+Jeg forenkler kanskje litt, men det virker ganske tydelig at riktig håndtering av samtidighet er helt avgjørende i databasesystemer. Det blir spesielt tydelig når man ser det skje i praksis gjennom programmet, ikke bare i teori.
 
 --- 
 
 ## Oppgave 10: Sanntids Valutakurs-Cache med Redis
 
+---
+
 🔹 Beskrivelse av løsningen
 
 I denne oppgaven har vi laget en tjeneste som henter valutakurser, og den bruker både en relasjonsdatabase (PostgreSQL) og en cache med Redis for å gjøre systemet raskere. Systemet kjører i Docker med tre komponenter: PostgreSQL for lagring av hoveddata, Redis for caching, og en FastAPI-applikasjon som håndterer forespørsler fra brukere.
+
+---
 
 🔹 Cache-logikk og dataflyt
 
@@ -400,9 +428,13 @@ Når man spør etter en valutakurs, for eksempel fra USD til NOK via endpointet 
 
 Hvis verdien ikke finnes (cache miss), hentes kursen fra et eksternt API. Resultatet lagres deretter i Redis med en TTL på 3600 sekunder, og samtidig lagres det i PostgreSQL i tabellen "Kurslogg", sammen med informasjon om hendelsen (hit eller miss).
 
+---
+
 🔹 Cron-jobb
 
 Det brukes også en cron-jobb med APScheduler som oppdaterer valutakurser jevnlig. Dette gjør at cache kan være forhåndsutfylt ved oppstart, noe som reduserer behovet for dyre API-kall.
+
+---
 
 🔹 Testing og observasjoner
 
@@ -416,6 +448,8 @@ ble resultatet en cache miss. Responstiden var høyere (ca. 200–300 ms), siden
 
 Ved gjentatte kall til samme endpoint ble resultatet cache hit. Da ble data hentet direkte fra Redis, med mye lavere responstid (ca. 5–10 ms), og uten kall til API-et. Dette viser tydelig at cache-mekanismen fungerer.
 
+---
+
 🔹 Testing av cache-sletting
 
 Ved bruk av endpointet:
@@ -423,6 +457,8 @@ Ved bruk av endpointet:
 DELETE /cache
 
 ble alle cache-nøkler slettet. Neste kall ga da igjen en cache miss, noe som bekrefter at cache-logikken fungerer som forventet.
+
+---
 
 🔹 Verifisering i PostgreSQL
 
@@ -432,11 +468,15 @@ SELECT * FROM "Kurslogg";
 
 kunne man se flere rader med informasjon om valutapar, kurs, om det var cache hit eller miss, samt tidspunkt. Dette viser at systemet lagrer historikk korrekt.
 
+---
+
 🔹 Transaksjoner i PostgreSQL
 
 Ved lagring av valutakurser brukes transaksjoner for å sikre dataintegritet. Når en kurs hentes fra API-et (cache miss), utføres en INSERT-operasjon innenfor en transaksjon.
 
 Hvis operasjonen lykkes, utføres commit. Hvis noe går galt, utføres rollback. Dette sikrer at ufullstendige operasjoner ikke lagres i databasen.
+
+---
 
 🔹 ACID-egenskaper
 
@@ -449,6 +489,8 @@ Varighet: Data lagres permanent etter commit
 
 Dette er spesielt viktig når flere komponenter (API, Redis og database) jobber sammen.
 
+---
+
 🔹 Fordeler med løsningen
 
 Redis gir svært rask tilgang til ofte brukte data
@@ -458,11 +500,15 @@ PostgreSQL sørger for permanent lagring og historikk
 
 Kombinasjonen gir både høy ytelse og pålitelighet.
 
+---
+
 🔹 Utfordringer og begrensninger
 
 En utfordring med caching er at data kan bli utdaterte. Hvis valutakursen endrer seg før TTL utløper, kan Redis returnere en gammel verdi.
 
 Dette kan føre til inkonsistens mellom cache og faktisk markedsverdi. I tillegg kan cron-jobben føre til at første kall gir cache hit i stedet for miss, noe som ikke alltid er forventet.
+
+---
 
 🔹 Mulige forbedringer
 
@@ -474,6 +520,8 @@ oppdatere data oftere via cron-jobb
 lage et endpoint for ferske data, som /kurs/{fra}/{til}/frisk
 validere data basert på tidsstempel
 
+---
+
 🔹 Konklusjon
 
 Denne oppgaven viser hvordan Redis og PostgreSQL kan kombineres for å lage en effektiv og skalerbar tjeneste.
@@ -484,60 +532,85 @@ Redis fungerer som et raskt cache-lag, mens PostgreSQL håndterer permanent lagr
 
 ## Oppgave 11: Staging av Finansielle Dokumenter med MongoDB 
 
-Formål
+---
 
-Oppgaven handlet om å sette opp en ETL-pipeline der MongoDB fungerer som et slags mellomsteg mellom å hente data fra et eksternt API og deretter lagre det i en relasjonsdatabase som PostgreSQL. Jeg oppfatter at hovedmålet var å vise hvordan kombinasjonen av NoSQL- og SQL-databaser kan gjøre en dataplattform mer robust og fleksibel, altså ikke for rigid på én side.
+🔹 Formål
 
-Arkitektur og løsning
+Oppgaven handlet om å sette opp en ETL-pipeline der MongoDB fungerer som et mellomsteg mellom å hente data fra et eksternt API og deretter lagre det i en relasjonsdatabase som PostgreSQL. Jeg oppfatter at hovedmålet var å vise hvordan kombinasjonen av NoSQL- og SQL-databaser kan gjøre en dataplattform mer robust og fleksibel, altså ikke for rigid på én side.
 
-I løsningen min brukte jeg FastAPI til å lage et REST API som eksponerer alle funksjonene, og MongoDB til å lagre rådata som kommer inn som JSON fra API-et. PostgreSQL brukes til å lagre de transformerte dataene i en strukturert form. APScheduler kjører hele ETL-prosessen automatisk med jevne intervaller, og alt er containerisert med Docker slik at det er enkelt å deploye.
+---
 
-Dataflyt (ETL-prosess)
+🔹 Arkitektur og løsning
 
-Dataflyten starter med å hente informasjon fra Alpha Vantage API, eller noen ganger genererer jeg syntetiske data hvis API-et feiler. Disse rådataene blir lagret i MongoDB med en gang. Derfra trekker jeg ut relevante felter som OHLCV-priser og volum, transformerer dem til et mer brukbart format, og laster dem inn i PostgreSQL. Til slutt oppdaterer jeg statusen i MongoDB til at dokumentet er lastet.
+I løsningen min brukte jeg FastAPI til å lage et REST API som eksponerer funksjonaliteten, og MongoDB til å lagre rådata som kommer inn som JSON fra API-et. PostgreSQL brukes til å lagre de transformerte dataene i en strukturert form. APScheduler kjører ETL-prosessen automatisk med jevne intervaller, og hele løsningen er containerisert med Docker, noe som gjør den enkel å deploye.
 
-Hvorfor MongoDB som staging
+---
 
-Hvorfor velge MongoDB til staging. Den håndterer rå JSON-data uten å kreve et strengt skjema, noe som er nyttig siden API-data ofte kan være ustrukturert. Den gjør det også mulig å lagre logger og historikk, nesten som et audit trail, som gjør det enklere å feilsøke hvis noe går galt i transformasjon eller lasting. Man kan også kjøre deler av prosessen på nytt uten å miste originaldataene. Denne løsningen holder rådata og ferdig prosesserte data adskilt, noe som føles viktig.
+🔹 Dataflyt (ETL-prosess)
 
-Integrasjon mellom MongoDB og PostgreSQL
+Dataflyten starter med å hente informasjon fra Alpha Vantage API, eller ved å generere syntetiske data dersom API-et feiler. Disse rådataene blir lagret i MongoDB umiddelbart. Deretter trekkes relevante felter ut, som OHLCV-priser og volum, transformeres til et mer brukbart format, og lastes inn i PostgreSQL. Til slutt oppdateres statusen i MongoDB slik at dokumentet markeres som ferdig prosessert.
 
-Kombinasjonen av MongoDB og PostgreSQL fungerte ved å bruke NoSQL-delen til fleksibel lagring av ustrukturert data først, og deretter SQL for konsistent og strukturert lagring senere. Dette gir fleksibilitet der det trengs når data kommer inn, samtidig som man sikrer at sluttresultatet er pålitelig.
+---
 
-Feilhåndtering
+🔹 Hvorfor MongoDB som staging
 
-ETL-pipelinen henter data fra API-et, lagrer det i MongoDB med status "STAGED", transformerer det til riktig format, laster det inn i PostgreSQL, og markerer dokumentet som "LASTET" i MongoDB. Hvis API-et ikke er tilgjengelig, brukes syntetiske data slik at prosessen fortsatt kan kjøre. Feil blir logget i en ETL-loggtabell, og rådataene blir liggende i MongoDB slik at de kan behandles på nytt senere hvis nødvendig.
+MongoDB egner seg godt som staging-lag fordi den håndterer rå JSON-data uten krav til et strengt skjema. Dette er spesielt nyttig siden API-data ofte kan være ustrukturert. I tillegg gjør det mulig å lagre historikk og logger, nesten som et audit trail, noe som forenkler feilsøking. En annen fordel er at data kan reprosesseres senere uten å måtte hente dem på nytt fra API-et. Denne løsningen holder rådata og ferdig prosesserte data adskilt, noe som gir bedre kontroll.
 
-Testing
+---
 
-For testing brukte jeg Swagger UI til å teste endepunktene. For eksempel health check for å sjekke at API-et kjører, eller hente liste over tilgjengelige verdipapirer. Deretter kjørte jeg full ETL med /etl/alle, eller manuelt for et spesifikt ticker-symbol. Det er også mulig å se rådata i MongoDB for et ticker, eller hente statistikk fra PostgreSQL og staging-status fra MongoDB. Alt fungerte som forventet, selv om noen kjøringer tok litt lengre tid enn andre.
+🔹 Integrasjon mellom MongoDB og PostgreSQL
 
-Diskusjon
+Kombinasjonen av MongoDB og PostgreSQL fungerer ved å bruke NoSQL-delen til fleksibel lagring av ustrukturert data først, og deretter SQL for konsistent og strukturert lagring. Dette gir fleksibilitet når data kommer inn, samtidig som sluttresultatet blir pålitelig og strukturert.
 
-Det virker som at dette staging-laget gir bedre kontroll over databehandlingen. Systemet blir mer robust mot feil, og det er enklere å tilpasse hvis datakilden endrer seg. Uten dette laget ville man sendt data direkte fra API til PostgreSQL, noe som kunne gjort systemet mer sårbart og vanskeligere å feilsøke, spesielt med varierende inputformater. Noen vil kanskje mene at direkte lasting er enklere, men jeg er ikke enig i det, i hvert fall ikke i denne typen løsning.
+---
 
-Konklusjon
+🔹 Feilhåndtering
 
-Totalt sett viste denne oppgaven en moderne måte å bygge en ETL-arkitektur på ved å kombinere NoSQL- og SQL-databaser. Løsningen fremstår som robust, fleksibel og skalerbar dersom man legger til flere datakilder. MongoDB fungerer godt som staging-lag, mens PostgreSQL sørger for strukturert og konsistent lagring. Det kan hende jeg forenkler litt, men slik opplevde jeg det etter å ha gjennomført oppgaven.
+ETL-pipelinen lagrer først data i MongoDB med status "STAGED", transformerer dem, laster dem inn i PostgreSQL, og oppdaterer statusen til "LASTET". Hvis API-et ikke er tilgjengelig, brukes syntetiske data slik at prosessen fortsatt kan kjøre. Feil logges i en egen ETL-loggtabell, og rådataene blir liggende i MongoDB slik at de kan behandles på nytt senere.
+
+---
+
+🔹 Testing
+
+For testing brukte jeg Swagger UI til å teste endepunktene, blant annet health check og henting av verdipapirer. Deretter kjørte jeg full ETL via /etl/alle, eller manuelt for spesifikke tickere. Det var også mulig å inspisere rådata i MongoDB og hente statistikk fra PostgreSQL. Alt fungerte som forventet, selv om enkelte kjøringer tok litt lengre tid.
+
+---
+
+🔹 Diskusjon
+
+Det virker som at staging-laget gir bedre kontroll over databehandlingen. Systemet blir mer robust mot feil, og det er enklere å tilpasse dersom datakilden endrer seg. Uten dette laget ville data blitt sendt direkte fra API til PostgreSQL, noe som kunne gjort systemet mer sårbart og vanskeligere å feilsøke. Selv om direkte lasting kan virke enklere, mener jeg at staging-laget gir en tryggere og mer fleksibel løsning i denne typen systemer.
+
+---
+
+🔹 Konklusjon
+
+Denne oppgaven viser hvordan MongoDB og PostgreSQL kan kombineres i en ETL-pipeline for å håndtere finansielle data på en fleksibel og robust måte.
+
+MongoDB fungerer som et staging-lag der rå JSON-data lagres uten behov for et strengt skjema, mens PostgreSQL brukes til strukturert og konsistent lagring av transformerte data. Dette gjør det mulig å håndtere ustrukturert data fra eksterne API-er på en trygg måte.
+
+Et viktig poeng er at staging-laget gir bedre kontroll over databehandlingen. Rådata kan beholdes for feilsøking, historikk og reprosessering, noe som gjør systemet mer robust dersom noe går galt i transformasjonen eller lasting til SQL-databasen.
+
+Jeg opplever at denne typen arkitektur gir en god balanse mellom fleksibilitet og struktur. Det virker ganske tydelig at en slik løsning er veldig relevant i praksis, spesielt når man jobber med komplekse og varierende datastrukturer fra eksterne kilder.
 
 ---
 
 ## Oppgave 12: Refleksjon i forhold til læringsutbytte 
 
-I løpet av dette prosjektet har jeg fått en mye bedre forståelse av hvordan databaser fungerer i praksis, ikke bare i teorien. Gjennom arbeidet med oppgavene har jeg brukt både relasjonsdatabaser (PostgreSQL) og NoSQL-løsninger (Redis og MongoDB), noe som har gitt meg innsikt i hvordan disse kan brukes sammen i moderne systemer.
+---
 
-Det var spesielt nyttig å jobbe med transaksjoner og ACID-egenskaper i de tidligere oppgavene. Dette gjorde det tydelig hvor viktig datakonsistens er, særlig i systemer som håndterer økonomiske data. Oppgaver om samtidighet og låsing viste også hvor lett det er å få feil dersom dette ikke håndteres riktig.
+I løpet av dette prosjektet har jeg fått en mye bedre forståelse av hvordan databaser fungerer i praksis, ikke bare i teorien. Gjennom arbeidet med oppgavene har jeg brukt både relasjonsdatabaser (PostgreSQL) og NoSQL-løsninger (Redis og MongoDB), noe som har gitt meg innsikt i hvordan disse kan kombineres i moderne systemer for å løse ulike typer problemer.
 
-Videre lærte jeg mye om ytelse og optimalisering gjennom bruk av EXPLAIN ANALYZE og indekser. Det var interessant å se hvordan selv små endringer kunne gi betydelig forbedring i responstid. Bruken av materialiserte visninger ga også en bedre forståelse av hvordan man kan optimalisere spørringer som brukes ofte.
+Arbeidet med transaksjoner og ACID-egenskaper i de tidligere oppgavene var spesielt nyttig. Det gjorde det tydelig hvor viktig datakonsistens er, særlig i systemer som håndterer økonomiske data. Oppgavene om samtidighet og låsing viste også hvor lett det er å få feil dersom slike mekanismer ikke håndteres riktig, og hvor avgjørende det er å bruke riktige kontrollmekanismer.
 
-I de siste oppgavene jobbet vi mer med systemdesign, spesielt med cache (Redis) og staging (MongoDB). Her fikk jeg innsikt i hvordan man kan bygge mer robuste og fleksible systemer ved å kombinere flere teknologier. ETL-pipelinen i oppgave 11 var spesielt lærerik, siden den viste hele flyten fra ekstern datakilde til lagring i databasen.
+Videre lærte jeg mye om ytelse og optimalisering gjennom bruk av EXPLAIN ANALYZE og indekser. Det var interessant å se hvordan selv små endringer kunne gi betydelige forbedringer i responstid. Bruken av materialiserte visninger ga også en bedre forståelse av hvordan man kan optimalisere spørringer som brukes ofte.
 
-Testing gjennom Swagger UI gjorde det også lettere å forstå hvordan API-er fungerer i praksis, og hvordan backend-komponenter henger sammen.
+I de siste oppgavene jobbet jeg mer med systemdesign, spesielt med cache (Redis) og staging (MongoDB). Her fikk jeg innsikt i hvordan man kan bygge mer robuste og fleksible systemer ved å kombinere flere teknologier. ETL-pipelinen i oppgave 11 var særlig lærerik, siden den viste hele dataflyten fra ekstern datakilde til lagring i databasen.
 
-Jeg forenkler kanskje litt, men det virker som dette prosjektet gir en ganske realistisk introduksjon til hvordan databaser brukes i virkelige systemer. Jeg opplever at jeg nå har bedre forståelse av både struktur (datamodellering), kontroll (transaksjoner og sikkerhet), og ytelse (indekser og caching).
+Testing gjennom Swagger UI gjorde det også enklere å forstå hvordan API-er fungerer i praksis, og hvordan backend-komponenter henger sammen i en helhetlig løsning.
 
-Alt i alt føler jeg at læringsutbyttet fra emnet i stor grad er oppnådd. Samtidig ser jeg at det fortsatt er mye å lære, spesielt når det gjelder mer avansert optimalisering og skalering av databaser i større systemer.
+Alt i alt opplever jeg at prosjektet gir en realistisk introduksjon til hvordan databaser brukes i virkelige systemer. Jeg har fått bedre forståelse av både struktur (datamodellering), kontroll (transaksjoner og sikkerhet) og ytelse (indekser og caching).
 
+Samtidig ser jeg at det fortsatt er mye å lære, spesielt når det gjelder avansert optimalisering og skalering av databaser i større systemer.
 
-Avslutningsvis viser prosjektet tydelig hvordan teori og praksis henger sammen, og hvordan kunnskap om databaser kan brukes til å utvikle robuste og effektive løsninger.
+Avslutningsvis viser prosjektet tydelig hvordan teori og praksis henger sammen, og hvordan kunnskap om databaser kan brukes til å utvikle robuste, effektive og skalerbare løsninger.
 
