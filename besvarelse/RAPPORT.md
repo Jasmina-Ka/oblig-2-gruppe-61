@@ -488,39 +488,39 @@ Redis fungerer som et raskt cache-lag, mens PostgreSQL håndterer permanent lagr
 
 ## Oppgave 11: Staging av Finansielle Dokumenter med MongoDB 
 
-Formål
+🔹 Formål
 
 Oppgaven handlet om å sette opp en ETL-pipeline der MongoDB fungerer som et slags mellomsteg mellom å hente data fra et eksternt API og deretter lagre det i en relasjonsdatabase som PostgreSQL. Jeg oppfatter at hovedmålet var å vise hvordan kombinasjonen av NoSQL- og SQL-databaser kan gjøre en dataplattform mer robust og fleksibel, altså ikke for rigid på én side.
 
-Arkitektur og løsning
+🔹 Arkitektur og løsning
 
 I løsningen min brukte jeg FastAPI til å lage et REST API som eksponerer alle funksjonene, og MongoDB til å lagre rådata som kommer inn som JSON fra API-et. PostgreSQL brukes til å lagre de transformerte dataene i en strukturert form. APScheduler kjører hele ETL-prosessen automatisk med jevne intervaller, og alt er containerisert med Docker slik at det er enkelt å deploye.
 
-Dataflyt (ETL-prosess)
+🔹 Dataflyt (ETL-prosess)
 
 Dataflyten starter med å hente informasjon fra Alpha Vantage API, eller noen ganger genererer jeg syntetiske data hvis API-et feiler. Disse rådataene blir lagret i MongoDB med en gang. Derfra trekker jeg ut relevante felter som OHLCV-priser og volum, transformerer dem til et mer brukbart format, og laster dem inn i PostgreSQL. Til slutt oppdaterer jeg statusen i MongoDB til at dokumentet er lastet.
 
-Hvorfor MongoDB som staging
+🔹 Hvorfor MongoDB som staging
 
 Hvorfor velge MongoDB til staging. Den håndterer rå JSON-data uten å kreve et strengt skjema, noe som er nyttig siden API-data ofte kan være ustrukturert. Den gjør det også mulig å lagre logger og historikk, nesten som et audit trail, som gjør det enklere å feilsøke hvis noe går galt i transformasjon eller lasting. Man kan også kjøre deler av prosessen på nytt uten å miste originaldataene. Denne løsningen holder rådata og ferdig prosesserte data adskilt, noe som føles viktig.
 
-Integrasjon mellom MongoDB og PostgreSQL
+🔹 Integrasjon mellom MongoDB og PostgreSQL
 
 Kombinasjonen av MongoDB og PostgreSQL fungerte ved å bruke NoSQL-delen til fleksibel lagring av ustrukturert data først, og deretter SQL for konsistent og strukturert lagring senere. Dette gir fleksibilitet der det trengs når data kommer inn, samtidig som man sikrer at sluttresultatet er pålitelig.
 
-Feilhåndtering
+🔹 Feilhåndtering
 
 ETL-pipelinen henter data fra API-et, lagrer det i MongoDB med status "STAGED", transformerer det til riktig format, laster det inn i PostgreSQL, og markerer dokumentet som "LASTET" i MongoDB. Hvis API-et ikke er tilgjengelig, brukes syntetiske data slik at prosessen fortsatt kan kjøre. Feil blir logget i en ETL-loggtabell, og rådataene blir liggende i MongoDB slik at de kan behandles på nytt senere hvis nødvendig.
 
-Testing
+🔹 Testing
 
 For testing brukte jeg Swagger UI til å teste endepunktene. For eksempel health check for å sjekke at API-et kjører, eller hente liste over tilgjengelige verdipapirer. Deretter kjørte jeg full ETL med /etl/alle, eller manuelt for et spesifikt ticker-symbol. Det er også mulig å se rådata i MongoDB for et ticker, eller hente statistikk fra PostgreSQL og staging-status fra MongoDB. Alt fungerte som forventet, selv om noen kjøringer tok litt lengre tid enn andre.
 
-Diskusjon
+🔹 Diskusjon
 
 Det virker som at dette staging-laget gir bedre kontroll over databehandlingen. Systemet blir mer robust mot feil, og det er enklere å tilpasse hvis datakilden endrer seg. Uten dette laget ville man sendt data direkte fra API til PostgreSQL, noe som kunne gjort systemet mer sårbart og vanskeligere å feilsøke, spesielt med varierende inputformater. Noen vil kanskje mene at direkte lasting er enklere, men jeg er ikke enig i det, i hvert fall ikke i denne typen løsning.
 
-Konklusjon
+🔹 Konklusjon
 
 Denne oppgaven viser tydelig hvordan Redis og PostgreSQL kan kombineres for å bygge en effektiv og skalerbar tjeneste for håndtering av valutakurser.
 
