@@ -522,7 +522,15 @@ Det virker som at dette staging-laget gir bedre kontroll over databehandlingen. 
 
 Konklusjon
 
-Totalt sett viste denne oppgaven en moderne måte å bygge en ETL-arkitektur på ved å kombinere NoSQL- og SQL-databaser. Løsningen fremstår som robust, fleksibel og skalerbar dersom man legger til flere datakilder. MongoDB fungerer godt som staging-lag, mens PostgreSQL sørger for strukturert og konsistent lagring. Det kan hende jeg forenkler litt, men slik opplevde jeg det etter å ha gjennomført oppgaven.
+Denne oppgaven viser tydelig hvordan Redis og PostgreSQL kan kombineres for å bygge en effektiv og skalerbar tjeneste for håndtering av valutakurser.
+
+Redis fungerer som et raskt cache-lag som reduserer responstid og antall kall til eksterne API-er, mens PostgreSQL sikrer permanent lagring av data og historikk. Gjennom cache-logikken med Cache Hit og Cache Miss ser man hvordan systemet optimaliserer ytelsen ved å unngå unødvendige API-kall.
+
+Samtidig viser oppgaven hvor viktig det er å bruke transaksjoner i databasen for å sikre dataintegritet. Ved feil blir operasjoner rullet tilbake, slik at systemet forblir konsistent.
+
+Et viktig poeng jeg legger merke til er at caching også introduserer utfordringer, spesielt når data kan bli utdatert før TTL utløper. Dette gjør det nødvendig å balansere mellom ytelse og datakvalitet, for eksempel ved å bruke kortere TTL eller mekanismer for cache-invalidering.
+
+Alt i alt gir denne løsningen en god kombinasjon av høy ytelse og pålitelighet. Det virker ganske tydelig at en slik arkitektur er veldig relevant i praksis, spesielt i systemer som håndterer sanntidsdata og mange forespørsler samtidig.
 
 ---
 
