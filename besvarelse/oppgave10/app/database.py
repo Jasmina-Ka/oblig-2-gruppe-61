@@ -221,20 +221,17 @@ def logg_cache_hendelse(
 ):
     """Registrerer en cache-hendelse i Kurslogg-tabellen."""
     try:
-        fra_kode, til_kode = valutapar.split(":", 1)
-
         with db_tilkobling() as conn:
             with conn.cursor() as cur:
                 cur.execute("""
                     INSERT INTO "Kurslogg"
-                        (fra_valuta, til_valuta, kurs, kilde, hendelse, ttl_sekunder, responstid_ms)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                        (valutapar, hendelse, kurs, kilde, ttl_sekunder, responstid_ms)
+                    VALUES (%s, %s, %s, %s, %s, %s)
                 """, (
-                    fra_kode,
-                    til_kode,
+                    valutapar,
+                    hendelse,
                     kurs,
                     kilde,
-                    hendelse,
                     ttl,
                     responstid_ms
                 ))
