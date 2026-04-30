@@ -347,10 +347,10 @@ I det første scenariet brukte vi en INSERT-basert modell. Her lagres ikke saldo
 
 Begge trådene:
 
-leste samme saldo
-la til hver sin postering med INSERT
+- leste samme saldo
+- og la til hver sin postering med INSERT
 
-Ingenting gikk tapt, siden INSERT bare legger til nye rader uten å overskrive eksisterende data. Det virker som denne typen design håndterer samtidighet ganske bra av seg selv.
+Ingenting gikk tapt, siden INSERT bare legger til nye rader uten å overskrive eksisterende data. Denne typen design håndterer samtidighet godt av seg selv.
 
 Dette fungerte helt fint, uten problemer.
 
@@ -360,25 +360,27 @@ I neste del, scenario B1, brukte vi den klassiske metoden med UPDATE uten noen f
 
 Hver tråd:
 
-leste verdien
-beregnet en ny verdi
-skrev den tilbake
+- leste verdien
+- beregnet en ny verdi
+- og skrev den tilbake
 
 Siden det ikke var noen låsing, overskrev den siste transaksjonen den første. Den forventede saldoen var 264 625 kr, men resultatet ble 261 625 kr. Det betyr at 3 000 kr gikk tapt i oppdateringen.
 
-Dette viser ganske tydelig hvordan ting fort kan gå galt når flere oppdateringer skjer samtidig uten kontroll.
+Dette viser tydelig hvor galt det kan gå når flere oppdateringer skjer samtidig uten kontroll.
 
 🔹 Scenario B2 – UPDATE med SELECT FOR UPDATE
 
 For å løse dette, brukte vi SELECT FOR UPDATE i scenario B2. Dette låser raden slik at den andre tråden må vente.
 
-Da ble begge oppdateringene gjennomført riktig, og saldoen ble korrekt. Det virker som låsing er helt nødvendig når man bruker UPDATE i slike tilfeller.
+Begge oppdateringene ble da gjennomført riktig, og saldoen ble korrekt. Dette viser at låsing er nødvendig når man bruker UPDATE i slike tilfeller.
 
 🔹 Sammenligning av scenarier
 
-INSERT-basert modell unngår problemet helt
-UPDATE uten låsing fører til tapt oppdatering
-UPDATE med SELECT FOR UPDATE gir korrekt resultat
+INSERT-basert modell unngår problemet helt.
+
+UPDATE uten låsing fører til tapt oppdatering.
+
+UPDATE med SELECT FOR UPDATE gir korrekt resultat.
 
 🔹 Konklusjon
 
@@ -386,7 +388,7 @@ Oppgaven gjorde det tydelig hvordan ulike tilnærminger påvirker datakonsistens
 
 Tapt oppdatering oppstår lett ved bruk av UPDATE uten kontrollmekanismer, mens INSERT-baserte systemer unngår dette gjennom selve designet. Ved bruk av UPDATE er det derfor viktig å bruke låsing, som SELECT FOR UPDATE, for å sikre at data forblir konsistent.
 
-Jeg forenkler kanskje litt, men det virker ganske tydelig at riktig håndtering av samtidighet er helt avgjørende i databasesystemer. Det blir spesielt klart når man faktisk ser det skje i praksis i programmet.
+Jeg forenkler kanskje litt, men det virker ganske tydelig at riktig håndtering av samtidighet er helt avgjørende i databasesystemer. Det blir spesielt tydelig når man ser det skje i praksis gjennom programmet, ikke bare i teori.
 
 --- 
 
