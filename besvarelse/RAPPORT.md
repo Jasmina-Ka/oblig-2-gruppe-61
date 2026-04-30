@@ -598,20 +598,19 @@ Jeg opplever at denne typen arkitektur gir en god balanse mellom fleksibilitet o
 
 ---
 
-I løpet av dette prosjektet har jeg fått en mye bedre forståelse av hvordan databaser fungerer i praksis, ikke bare i teorien. Gjennom arbeidet med oppgavene har jeg brukt både relasjonsdatabaser (PostgreSQL) og NoSQL-løsninger (Redis og MongoDB), noe som har gitt meg innsikt i hvordan disse kan brukes sammen i moderne systemer.
+I løpet av dette prosjektet har jeg fått en mye bedre forståelse av hvordan databaser fungerer i praksis, ikke bare i teorien. Gjennom arbeidet med oppgavene har jeg brukt både relasjonsdatabaser (PostgreSQL) og NoSQL-løsninger (Redis og MongoDB), noe som har gitt meg innsikt i hvordan disse kan kombineres i moderne systemer for å løse ulike typer problemer.
 
-Det var spesielt nyttig å jobbe med transaksjoner og ACID-egenskaper i de tidligere oppgavene. Dette gjorde det tydelig hvor viktig datakonsistens er, særlig i systemer som håndterer økonomiske data. Oppgaver om samtidighet og låsing viste også hvor lett det er å få feil dersom dette ikke håndteres riktig.
+Arbeidet med transaksjoner og ACID-egenskaper i de tidligere oppgavene var spesielt nyttig. Det gjorde det tydelig hvor viktig datakonsistens er, særlig i systemer som håndterer økonomiske data. Oppgavene om samtidighet og låsing viste også hvor lett det er å få feil dersom slike mekanismer ikke håndteres riktig, og hvor avgjørende det er å bruke riktige kontrollmekanismer.
 
-Videre lærte jeg mye om ytelse og optimalisering gjennom bruk av EXPLAIN ANALYZE og indekser. Det var interessant å se hvordan selv små endringer kunne gi betydelig forbedring i responstid. Bruken av materialiserte visninger ga også en bedre forståelse av hvordan man kan optimalisere spørringer som brukes ofte.
+Videre lærte jeg mye om ytelse og optimalisering gjennom bruk av EXPLAIN ANALYZE og indekser. Det var interessant å se hvordan selv små endringer kunne gi betydelige forbedringer i responstid. Bruken av materialiserte visninger ga også en bedre forståelse av hvordan man kan optimalisere spørringer som brukes ofte.
 
-I de siste oppgavene jobbet vi mer med systemdesign, spesielt med cache (Redis) og staging (MongoDB). Her fikk jeg innsikt i hvordan man kan bygge mer robuste og fleksible systemer ved å kombinere flere teknologier. ETL-pipelinen i oppgave 11 var spesielt lærerik, siden den viste hele flyten fra ekstern datakilde til lagring i databasen.
+I de siste oppgavene jobbet jeg mer med systemdesign, spesielt med cache (Redis) og staging (MongoDB). Her fikk jeg innsikt i hvordan man kan bygge mer robuste og fleksible systemer ved å kombinere flere teknologier. ETL-pipelinen i oppgave 11 var særlig lærerik, siden den viste hele dataflyten fra ekstern datakilde til lagring i databasen.
 
-Testing gjennom Swagger UI gjorde det også lettere å forstå hvordan API-er fungerer i praksis, og hvordan backend-komponenter henger sammen.
+Testing gjennom Swagger UI gjorde det også enklere å forstå hvordan API-er fungerer i praksis, og hvordan backend-komponenter henger sammen i en helhetlig løsning.
 
-Jeg forenkler kanskje litt, men det virker som dette prosjektet gir en ganske realistisk introduksjon til hvordan databaser brukes i virkelige systemer. Jeg opplever at jeg nå har bedre forståelse av både struktur (datamodellering), kontroll (transaksjoner og sikkerhet), og ytelse (indekser og caching).
+Alt i alt opplever jeg at prosjektet gir en realistisk introduksjon til hvordan databaser brukes i virkelige systemer. Jeg har fått bedre forståelse av både struktur (datamodellering), kontroll (transaksjoner og sikkerhet) og ytelse (indekser og caching).
 
-Alt i alt føler jeg at læringsutbyttet fra emnet i stor grad er oppnådd. Samtidig ser jeg at det fortsatt er mye å lære, spesielt når det gjelder mer avansert optimalisering og skalering av databaser i større systemer.
+Samtidig ser jeg at det fortsatt er mye å lære, spesielt når det gjelder avansert optimalisering og skalering av databaser i større systemer.
 
-
-Avslutningsvis viser prosjektet tydelig hvordan teori og praksis henger sammen, og hvordan kunnskap om databaser kan brukes til å utvikle robuste og effektive løsninger.
+Avslutningsvis viser prosjektet tydelig hvordan teori og praksis henger sammen, og hvordan kunnskap om databaser kan brukes til å utvikle robuste, effektive og skalerbare løsninger.
 
