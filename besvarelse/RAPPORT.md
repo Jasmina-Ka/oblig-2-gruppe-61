@@ -16,7 +16,9 @@ Oppgavene bygger på hverandre, fra grunnleggende datamodellering og normaliseri
 
 ---
 
-## Oppgave 1: Implementasjon av datamodellen, mermaid-diagrammet og normalform
+## Oppgave 1: Implementasjon av datamodellen, mermaid-diagrammet og normalform6
+
+---
 
 ### Del B – Mermaid-diagram
 
@@ -147,6 +149,8 @@ Jeg forenkler kanskje litt, men det virker ganske tydelig at ytelsen kan forbedr
 
 ## Oppgave 6: Databaseadministrasjon og tilgangskontroll
 
+---
+
 I denne oppgaven ble det implementert en sikkerhetsmodell i PostgreSQL ved hjelp av roller, brukere, `GRANT`/`REVOKE` og Row Level Security (RLS).
 
 Det ble opprettet fire roller:
@@ -216,6 +220,8 @@ Jeg opplever at oppgaven gir en bedre forståelse av hvordan slike mekanismer fu
 ---
 
 ## Oppgave 7: Atomisk Regnskapspostering (K10.1, K10.2) 
+
+---
 
 ### 🔹 Scenario A – Vellykket postering
 
@@ -294,6 +300,8 @@ Jeg forenkler kanskje litt, men det virker ganske tydelig at uten denne typen ko
 
 ## Oppgave 8: Feilhåndtering og Gjenoppbygging (K10.3, K10.4, K10.5, K10.6)
 
+---
+
 ### 8a: Teoretisk del
 
 ### 🔹 Hvilke transaksjoner må gjøres om, og hvilke må angres?
@@ -336,6 +344,8 @@ Jeg forenkler kanskje litt, men det virker ganske tydelig at disse mekanismene e
 ---
 
 ## Oppgave 9 – Samtidige transaksjoner og tapt oppdatering
+
+---
 
 🔹 Beskrivelse av løsningen
 
@@ -585,6 +595,8 @@ Jeg opplever at denne typen arkitektur gir en god balanse mellom fleksibilitet o
 ---
 
 ## Oppgave 12: Refleksjon i forhold til læringsutbytte 
+
+---
 
 I løpet av dette prosjektet har jeg fått en mye bedre forståelse av hvordan databaser fungerer i praksis, ikke bare i teorien. Gjennom arbeidet med oppgavene har jeg brukt både relasjonsdatabaser (PostgreSQL) og NoSQL-løsninger (Redis og MongoDB), noe som har gitt meg innsikt i hvordan disse kan brukes sammen i moderne systemer.
 
