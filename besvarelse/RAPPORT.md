@@ -167,7 +167,7 @@ I tillegg ble det opprettet fire brukere som ble tilordnet disse rollene:
 
 ### 🔹 Forskjellen mellom ROLE og USER
 
-I PostgreSQL er en `USER` egentlig en rolle med innloggingsrett (`LOGIN`). En `ROLE` kan være enten en ren rolle (uten login) eller en bruker. Dette gjør det mulig å skille mellom identitet (bruker) og rettigheter (rolle).
+I PostgreSQL er en USER egentlig en rolle med innloggingsrettigheter (LOGIN). En `ROLE` kan være enten en ren rolle (uten login) eller en bruker. Dette gjør det mulig å skille mellom identitet (bruker) og rettigheter (rolle).
 
 ---
 
@@ -193,7 +193,7 @@ Dette reduserer risikoen for feil og uautorisert tilgang.
 
 ### 🔹 Row Level Security (RLS)
 
-RLS ble aktivert på tabellen `Transaksjoner`. Dette gir mer detaljert tilgangskontroll enn vanlige `GRANT`-rettigheter.
+RLS ble aktivert på tabellen `Transaksjoner`. Dette sikrer at tilgangskontroll håndheves direkte på databasenivå, uavhengig av applikasjonslogikk. Dette gir mer detaljert tilgangskontroll enn vanlige `GRANT`-rettigheter.
 
 Det ble opprettet to policies:
 
@@ -206,9 +206,11 @@ Fordelen med RLS er at man kan begrense hvilke rader en bruker ser, ikke bare hv
 
 ### 🔹 Konklusjon
 
-Oppgaven viser hvordan tilgangskontroll kan implementeres på en strukturert måte i PostgreSQL ved hjelp av roller og RLS.
+Oppgaven viser hvordan tilgangskontroll kan implementeres på en strukturert, sikker og fleksibel måte i PostgreSQL ved hjelp av roller og RLS.
 
-Jeg forenkler kanskje litt, men det virker tydelig at denne typen oppsett gjør systemet både sikrere og enklere å administrere. Ved å kombinere roller og radnivåkontroll får man en fleksibel løsning som kan tilpasses ulike behov i praksis.
+Dette gjør det mulig å styre tilgang på en oversiktlig måte, samtidig som sensitive data beskyttes.
+
+Jeg opplever at oppgaven gir en bedre forståelse av hvordan slike mekanismer fungerer i praksis, og hvorfor de er viktige i større systemer.
 
 
 ---
