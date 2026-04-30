@@ -341,6 +341,8 @@ Jeg forenkler kanskje litt, men det virker ganske tydelig at disse mekanismene e
 
 I denne oppgaven så vi på problemet med tapt oppdatering ved bruk av samtidige transaksjoner i PostgreSQL. Jeg laget et Python-program som simulerer to brukere, Ane og Bjørn, som oppdaterer den samme kontoen samtidig. Programmet kjørte med to tråder og separate databasetilkoblinger for å sikre at det faktisk skjedde parallelt.
 
+---
+
 🔹 Scenario A – INSERT-basert modell
 
 I det første scenariet brukte vi en INSERT-basert modell. Her lagres ikke saldo direkte, men beregnes som summen av alle posteringer.
@@ -353,6 +355,8 @@ Begge trådene:
 Ingenting gikk tapt, siden INSERT bare legger til nye rader uten å overskrive eksisterende data. Denne typen design håndterer samtidighet godt av seg selv.
 
 Dette fungerte helt fint, uten problemer.
+
+---
 
 🔹 Scenario B1 – UPDATE uten låsing
 
@@ -368,11 +372,15 @@ Siden det ikke var noen låsing, overskrev den siste transaksjonen den første. 
 
 Dette viser tydelig hvor galt det kan gå når flere oppdateringer skjer samtidig uten kontroll.
 
+---
+
 🔹 Scenario B2 – UPDATE med SELECT FOR UPDATE
 
 For å løse dette, brukte vi SELECT FOR UPDATE i scenario B2. Dette låser raden slik at den andre tråden må vente.
 
 Begge oppdateringene ble da gjennomført riktig, og saldoen ble korrekt. Dette viser at låsing er nødvendig når man bruker UPDATE i slike tilfeller.
+
+---
 
 🔹 Sammenligning av scenarier
 
@@ -381,6 +389,8 @@ INSERT-basert modell unngår problemet helt.
 UPDATE uten låsing fører til tapt oppdatering.
 
 UPDATE med SELECT FOR UPDATE gir korrekt resultat.
+
+---
 
 🔹 Konklusjon
 
@@ -394,9 +404,13 @@ Jeg forenkler kanskje litt, men det virker ganske tydelig at riktig håndtering 
 
 ## Oppgave 10: Sanntids Valutakurs-Cache med Redis
 
+---
+
 🔹 Beskrivelse av løsningen
 
 I denne oppgaven har vi laget en tjeneste som henter valutakurser, og den bruker både en relasjonsdatabase (PostgreSQL) og en cache med Redis for å gjøre systemet raskere. Systemet kjører i Docker med tre komponenter: PostgreSQL for lagring av hoveddata, Redis for caching, og en FastAPI-applikasjon som håndterer forespørsler fra brukere.
+
+---
 
 🔹 Cache-logikk og dataflyt
 
@@ -404,9 +418,13 @@ Når man spør etter en valutakurs, for eksempel fra USD til NOK via endpointet 
 
 Hvis verdien ikke finnes (cache miss), hentes kursen fra et eksternt API. Resultatet lagres deretter i Redis med en TTL på 3600 sekunder, og samtidig lagres det i PostgreSQL i tabellen "Kurslogg", sammen med informasjon om hendelsen (hit eller miss).
 
+---
+
 🔹 Cron-jobb
 
 Det brukes også en cron-jobb med APScheduler som oppdaterer valutakurser jevnlig. Dette gjør at cache kan være forhåndsutfylt ved oppstart, noe som reduserer behovet for dyre API-kall.
+
+---
 
 🔹 Testing og observasjoner
 
@@ -420,6 +438,8 @@ ble resultatet en cache miss. Responstiden var høyere (ca. 200–300 ms), siden
 
 Ved gjentatte kall til samme endpoint ble resultatet cache hit. Da ble data hentet direkte fra Redis, med mye lavere responstid (ca. 5–10 ms), og uten kall til API-et. Dette viser tydelig at cache-mekanismen fungerer.
 
+---
+
 🔹 Testing av cache-sletting
 
 Ved bruk av endpointet:
@@ -427,6 +447,8 @@ Ved bruk av endpointet:
 DELETE /cache
 
 ble alle cache-nøkler slettet. Neste kall ga da igjen en cache miss, noe som bekrefter at cache-logikken fungerer som forventet.
+
+---
 
 🔹 Verifisering i PostgreSQL
 
@@ -436,11 +458,15 @@ SELECT * FROM "Kurslogg";
 
 kunne man se flere rader med informasjon om valutapar, kurs, om det var cache hit eller miss, samt tidspunkt. Dette viser at systemet lagrer historikk korrekt.
 
+---
+
 🔹 Transaksjoner i PostgreSQL
 
 Ved lagring av valutakurser brukes transaksjoner for å sikre dataintegritet. Når en kurs hentes fra API-et (cache miss), utføres en INSERT-operasjon innenfor en transaksjon.
 
 Hvis operasjonen lykkes, utføres commit. Hvis noe går galt, utføres rollback. Dette sikrer at ufullstendige operasjoner ikke lagres i databasen.
+
+---
 
 🔹 ACID-egenskaper
 
@@ -453,6 +479,8 @@ Varighet: Data lagres permanent etter commit
 
 Dette er spesielt viktig når flere komponenter (API, Redis og database) jobber sammen.
 
+---
+
 🔹 Fordeler med løsningen
 
 Redis gir svært rask tilgang til ofte brukte data
@@ -462,11 +490,15 @@ PostgreSQL sørger for permanent lagring og historikk
 
 Kombinasjonen gir både høy ytelse og pålitelighet.
 
+---
+
 🔹 Utfordringer og begrensninger
 
 En utfordring med caching er at data kan bli utdaterte. Hvis valutakursen endrer seg før TTL utløper, kan Redis returnere en gammel verdi.
 
 Dette kan føre til inkonsistens mellom cache og faktisk markedsverdi. I tillegg kan cron-jobben føre til at første kall gir cache hit i stedet for miss, noe som ikke alltid er forventet.
+
+---
 
 🔹 Mulige forbedringer
 
@@ -478,6 +510,8 @@ oppdatere data oftere via cron-jobb
 lage et endpoint for ferske data, som /kurs/{fra}/{til}/frisk
 validere data basert på tidsstempel
 
+---
+
 🔹 Konklusjon
 
 Denne oppgaven viser hvordan Redis og PostgreSQL kan kombineres for å lage en effektiv og skalerbar tjeneste.
@@ -488,49 +522,65 @@ Redis fungerer som et raskt cache-lag, mens PostgreSQL håndterer permanent lagr
 
 ## Oppgave 11: Staging av Finansielle Dokumenter med MongoDB 
 
+---
+
 🔹 Formål
 
-Oppgaven handlet om å sette opp en ETL-pipeline der MongoDB fungerer som et slags mellomsteg mellom å hente data fra et eksternt API og deretter lagre det i en relasjonsdatabase som PostgreSQL. Jeg oppfatter at hovedmålet var å vise hvordan kombinasjonen av NoSQL- og SQL-databaser kan gjøre en dataplattform mer robust og fleksibel, altså ikke for rigid på én side.
+Oppgaven handlet om å sette opp en ETL-pipeline der MongoDB fungerer som et mellomsteg mellom å hente data fra et eksternt API og deretter lagre det i en relasjonsdatabase som PostgreSQL. Jeg oppfatter at hovedmålet var å vise hvordan kombinasjonen av NoSQL- og SQL-databaser kan gjøre en dataplattform mer robust og fleksibel, altså ikke for rigid på én side.
+
+---
 
 🔹 Arkitektur og løsning
 
-I løsningen min brukte jeg FastAPI til å lage et REST API som eksponerer alle funksjonene, og MongoDB til å lagre rådata som kommer inn som JSON fra API-et. PostgreSQL brukes til å lagre de transformerte dataene i en strukturert form. APScheduler kjører hele ETL-prosessen automatisk med jevne intervaller, og alt er containerisert med Docker slik at det er enkelt å deploye.
+I løsningen min brukte jeg FastAPI til å lage et REST API som eksponerer funksjonaliteten, og MongoDB til å lagre rådata som kommer inn som JSON fra API-et. PostgreSQL brukes til å lagre de transformerte dataene i en strukturert form. APScheduler kjører ETL-prosessen automatisk med jevne intervaller, og hele løsningen er containerisert med Docker, noe som gjør den enkel å deploye.
+
+---
 
 🔹 Dataflyt (ETL-prosess)
 
-Dataflyten starter med å hente informasjon fra Alpha Vantage API, eller noen ganger genererer jeg syntetiske data hvis API-et feiler. Disse rådataene blir lagret i MongoDB med en gang. Derfra trekker jeg ut relevante felter som OHLCV-priser og volum, transformerer dem til et mer brukbart format, og laster dem inn i PostgreSQL. Til slutt oppdaterer jeg statusen i MongoDB til at dokumentet er lastet.
+Dataflyten starter med å hente informasjon fra Alpha Vantage API, eller ved å generere syntetiske data dersom API-et feiler. Disse rådataene blir lagret i MongoDB umiddelbart. Deretter trekkes relevante felter ut, som OHLCV-priser og volum, transformeres til et mer brukbart format, og lastes inn i PostgreSQL. Til slutt oppdateres statusen i MongoDB slik at dokumentet markeres som ferdig prosessert.
+
+---
 
 🔹 Hvorfor MongoDB som staging
 
-Hvorfor velge MongoDB til staging. Den håndterer rå JSON-data uten å kreve et strengt skjema, noe som er nyttig siden API-data ofte kan være ustrukturert. Den gjør det også mulig å lagre logger og historikk, nesten som et audit trail, som gjør det enklere å feilsøke hvis noe går galt i transformasjon eller lasting. Man kan også kjøre deler av prosessen på nytt uten å miste originaldataene. Denne løsningen holder rådata og ferdig prosesserte data adskilt, noe som føles viktig.
+MongoDB egner seg godt som staging-lag fordi den håndterer rå JSON-data uten krav til et strengt skjema. Dette er spesielt nyttig siden API-data ofte kan være ustrukturert. I tillegg gjør det mulig å lagre historikk og logger, nesten som et audit trail, noe som forenkler feilsøking. En annen fordel er at data kan reprosesseres senere uten å måtte hente dem på nytt fra API-et. Denne løsningen holder rådata og ferdig prosesserte data adskilt, noe som gir bedre kontroll.
+
+---
 
 🔹 Integrasjon mellom MongoDB og PostgreSQL
 
-Kombinasjonen av MongoDB og PostgreSQL fungerte ved å bruke NoSQL-delen til fleksibel lagring av ustrukturert data først, og deretter SQL for konsistent og strukturert lagring senere. Dette gir fleksibilitet der det trengs når data kommer inn, samtidig som man sikrer at sluttresultatet er pålitelig.
+Kombinasjonen av MongoDB og PostgreSQL fungerer ved å bruke NoSQL-delen til fleksibel lagring av ustrukturert data først, og deretter SQL for konsistent og strukturert lagring. Dette gir fleksibilitet når data kommer inn, samtidig som sluttresultatet blir pålitelig og strukturert.
+
+---
 
 🔹 Feilhåndtering
 
-ETL-pipelinen henter data fra API-et, lagrer det i MongoDB med status "STAGED", transformerer det til riktig format, laster det inn i PostgreSQL, og markerer dokumentet som "LASTET" i MongoDB. Hvis API-et ikke er tilgjengelig, brukes syntetiske data slik at prosessen fortsatt kan kjøre. Feil blir logget i en ETL-loggtabell, og rådataene blir liggende i MongoDB slik at de kan behandles på nytt senere hvis nødvendig.
+ETL-pipelinen lagrer først data i MongoDB med status "STAGED", transformerer dem, laster dem inn i PostgreSQL, og oppdaterer statusen til "LASTET". Hvis API-et ikke er tilgjengelig, brukes syntetiske data slik at prosessen fortsatt kan kjøre. Feil logges i en egen ETL-loggtabell, og rådataene blir liggende i MongoDB slik at de kan behandles på nytt senere.
+
+---
 
 🔹 Testing
 
-For testing brukte jeg Swagger UI til å teste endepunktene. For eksempel health check for å sjekke at API-et kjører, eller hente liste over tilgjengelige verdipapirer. Deretter kjørte jeg full ETL med /etl/alle, eller manuelt for et spesifikt ticker-symbol. Det er også mulig å se rådata i MongoDB for et ticker, eller hente statistikk fra PostgreSQL og staging-status fra MongoDB. Alt fungerte som forventet, selv om noen kjøringer tok litt lengre tid enn andre.
+For testing brukte jeg Swagger UI til å teste endepunktene, blant annet health check og henting av verdipapirer. Deretter kjørte jeg full ETL via /etl/alle, eller manuelt for spesifikke tickere. Det var også mulig å inspisere rådata i MongoDB og hente statistikk fra PostgreSQL. Alt fungerte som forventet, selv om enkelte kjøringer tok litt lengre tid.
+
+---
 
 🔹 Diskusjon
 
-Det virker som at dette staging-laget gir bedre kontroll over databehandlingen. Systemet blir mer robust mot feil, og det er enklere å tilpasse hvis datakilden endrer seg. Uten dette laget ville man sendt data direkte fra API til PostgreSQL, noe som kunne gjort systemet mer sårbart og vanskeligere å feilsøke, spesielt med varierende inputformater. Noen vil kanskje mene at direkte lasting er enklere, men jeg er ikke enig i det, i hvert fall ikke i denne typen løsning.
+Det virker som at staging-laget gir bedre kontroll over databehandlingen. Systemet blir mer robust mot feil, og det er enklere å tilpasse dersom datakilden endrer seg. Uten dette laget ville data blitt sendt direkte fra API til PostgreSQL, noe som kunne gjort systemet mer sårbart og vanskeligere å feilsøke. Selv om direkte lasting kan virke enklere, mener jeg at staging-laget gir en tryggere og mer fleksibel løsning i denne typen systemer.
+
+---
 
 🔹 Konklusjon
 
-Denne oppgaven viser tydelig hvordan Redis og PostgreSQL kan kombineres for å bygge en effektiv og skalerbar tjeneste for håndtering av valutakurser.
+Denne oppgaven viser hvordan MongoDB og PostgreSQL kan kombineres i en ETL-pipeline for å håndtere finansielle data på en fleksibel og robust måte.
 
-Redis fungerer som et raskt cache-lag som reduserer responstid og antall kall til eksterne API-er, mens PostgreSQL sikrer permanent lagring av data og historikk. Gjennom cache-logikken med Cache Hit og Cache Miss ser man hvordan systemet optimaliserer ytelsen ved å unngå unødvendige API-kall.
+MongoDB fungerer som et staging-lag der rå JSON-data lagres uten behov for et strengt skjema, mens PostgreSQL brukes til strukturert og konsistent lagring av transformerte data. Dette gjør det mulig å håndtere ustrukturert data fra eksterne API-er på en trygg måte.
 
-Samtidig viser oppgaven hvor viktig det er å bruke transaksjoner i databasen for å sikre dataintegritet. Ved feil blir operasjoner rullet tilbake, slik at systemet forblir konsistent.
+Et viktig poeng er at staging-laget gir bedre kontroll over databehandlingen. Rådata kan beholdes for feilsøking, historikk og reprosessering, noe som gjør systemet mer robust dersom noe går galt i transformasjonen eller lasting til SQL-databasen.
 
-Et viktig poeng jeg legger merke til er at caching også introduserer utfordringer, spesielt når data kan bli utdatert før TTL utløper. Dette gjør det nødvendig å balansere mellom ytelse og datakvalitet, for eksempel ved å bruke kortere TTL eller mekanismer for cache-invalidering.
-
-Alt i alt gir denne løsningen en god kombinasjon av høy ytelse og pålitelighet. Det virker ganske tydelig at en slik arkitektur er veldig relevant i praksis, spesielt i systemer som håndterer sanntidsdata og mange forespørsler samtidig.
+Jeg opplever at denne typen arkitektur gir en god balanse mellom fleksibilitet og struktur. Det virker ganske tydelig at en slik løsning er veldig relevant i praksis, spesielt når man jobber med komplekse og varierende datastrukturer fra eksterne kilder.
 
 ---
 
