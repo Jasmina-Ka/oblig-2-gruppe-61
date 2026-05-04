@@ -62,12 +62,35 @@ Dette gjør at modellen unngår duplisering av data, og den blir både enklere �
 
 ---
 
+## Oppgave 3: Grunnleggende SQL spørringer mot dobbelt bokholderi
+
+### Rettelse
+
+I oppgaven ble det opprinnelig referert til **B.1:B.4** for aggregeringer med `GROUP BY`.
+
+Dette er korrigert til kun **B.1**, siden det er denne delen som faktisk viser aggregering med `GROUP BY` i denne oppgaven.
+
+I `oppgave3.sql` er dette løst i del **B.1**, der antall posteringer per transaksjon beregnes ved hjelp av `COUNT()` og `GROUP BY`.
+
+---
+
 ### 🔹 Konklusjon
 
 Oppgaven viser hvordan en godt strukturert datamodell kan oppnå høy datakvalitet gjennom normalisering. Ved å følge prinsippene for 1NF, 2NF og 3NF blir databasen mer konsistent og robust.
 
 Jeg forenkler kanskje litt, men det virker ganske tydelig at en slik struktur gjør systemet lettere å jobbe med over tid, samtidig som det reduserer risikoen for feil i dataene.
 
+
+---
+
+## Oppgave 3: Grunnleggende SQL spørringer
+
+### Rettelse
+
+I oppgaven ble det opprinnelig referert til delene **B.1:B.4** i forbindelse med GROUP BY-spørringer.  
+Dette er korrigert til kun **B.1**, siden det er denne delen som faktisk demonstrerer korrekt aggregering.
+
+Denne justeringen tydeliggjør hvilke spørringer som oppfyller kravene til oppgaven.
 
 ---
 
@@ -614,3 +637,4 @@ Samtidig ser jeg at det fortsatt er mye å lære, spesielt når det gjelder avan
 
 Avslutningsvis viser prosjektet tydelig hvordan teori og praksis henger sammen, og hvordan kunnskap om databaser kan brukes til å utvikle robuste, effektive og skalerbare løsninger.
 
+D
