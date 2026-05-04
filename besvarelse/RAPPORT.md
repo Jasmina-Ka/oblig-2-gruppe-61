@@ -372,66 +372,73 @@ Jeg forenkler kanskje litt, men det virker ganske tydelig at disse mekanismene e
 
 🔹 Beskrivelse av løsningen
 
-I denne oppgaven så vi på problemet med tapt oppdatering ved bruk av samtidige transaksjoner i PostgreSQL. Jeg laget et Python-program som simulerer to brukere, Ane og Bjørn, som oppdaterer den samme kontoen samtidig. Programmet kjørte med to tråder og separate databasetilkoblinger for å sikre at det faktisk skjedde parallelt.
+I denne oppgaven analyserte vi problemet med tapt oppdatering ved samtidige transaksjoner i PostgreSQL. Jeg laget et Python-program som simulerer to brukere, Ane og Bjørn, som oppdaterer den samme kontoen samtidig. Programmet bruker to tråder og separate databasetilkoblinger for å sikre reell parallell kjøring.
 
 ---
 
 🔹 Scenario A – INSERT-basert modell
 
-I det første scenariet brukte vi en INSERT-basert modell. Her lagres ikke saldo direkte, men beregnes som summen av alle posteringer.
+I det første scenariet brukte vi en INSERT-basert modell, der saldo ikke lagres direkte, men beregnes som summen av alle posteringer.
 
 Begge trådene:
 
-- leste samme saldo
-- og la til hver sin postering med INSERT
+- leser samme saldo
+- og legger til hver sin postering med INSERT
 
-Ingenting gikk tapt, siden INSERT bare legger til nye rader uten å overskrive eksisterende data. Denne typen design håndterer samtidighet godt av seg selv.
-
-Dette fungerte helt fint, uten problemer.
+Ingen data går tapt, siden INSERT kun legger til nye rader og ikke overskriver eksisterende data. Denne typen design håndterer samtidighet godt.
 
 ---
 
 🔹 Scenario B1 – UPDATE uten låsing
 
-I neste del, scenario B1, brukte vi den klassiske metoden med UPDATE uten noen form for låsing.
+I scenario B1 brukte vi UPDATE uten noen form for låsing.
 
 Hver tråd:
 
-- leste verdien
-- beregnet en ny verdi
-- og skrev den tilbake
+- leser samme startsaldo (248 500 kr)
+- beregner en ny verdi
+- og skriver den tilbake
 
-Siden det ikke var noen låsing, overskrev den siste transaksjonen den første. Den forventede saldoen var 264 625 kr, men resultatet ble 261 625 kr. Det betyr at 3 000 kr gikk tapt i oppdateringen.
+Eksempel:
 
-Dette viser tydelig hvor galt det kan gå når flere oppdateringer skjer samtidig uten kontroll.
+- Tråd A: 248 500 + 3 000 = 251 500  
+- Tråd B: 248 500 + 1 500 = 250 000  
+
+Siden det ikke brukes låsing, vil den siste transaksjonen overskrive den første. Dette fører til tapt oppdatering.
+
+Den korrekte saldoen skulle vært:
+
+248 500 + 3 000 + 1 500 = 253 000 kr
+
+Men resultatet blir feil fordi én oppdatering går tapt.
 
 ---
 
 🔹 Scenario B2 – UPDATE med SELECT FOR UPDATE
 
-For å løse dette, brukte vi SELECT FOR UPDATE i scenario B2. Dette låser raden slik at den andre tråden må vente.
+For å løse problemet brukte vi SELECT FOR UPDATE i scenario B2.
 
-Begge oppdateringene ble da gjennomført riktig, og saldoen ble korrekt. Dette viser at låsing er nødvendig når man bruker UPDATE i slike tilfeller.
+Dette låser raden slik at den andre tråden må vente til den første er ferdig før den kan lese og oppdatere verdien.
+
+Resultatet blir da korrekt, fordi begge oppdateringene tas med.
 
 ---
 
 🔹 Sammenligning av scenarier
 
-INSERT-basert modell unngår problemet helt.
-
-UPDATE uten låsing fører til tapt oppdatering.
-
-UPDATE med SELECT FOR UPDATE gir korrekt resultat.
+- INSERT-basert modell unngår problemet helt  
+- UPDATE uten låsing fører til tapt oppdatering  
+- UPDATE med SELECT FOR UPDATE gir korrekt resultat  
 
 ---
 
 🔹 Konklusjon
 
-Oppgaven gjorde det tydelig hvordan ulike tilnærminger påvirker datakonsistens ved samtidig tilgang.
+Oppgaven viser tydelig hvordan samtidighet påvirker datakonsistens.
 
-Tapt oppdatering oppstår lett ved bruk av UPDATE uten kontrollmekanismer, mens INSERT-baserte systemer unngår dette gjennom selve designet. Ved bruk av UPDATE er det derfor viktig å bruke låsing, som SELECT FOR UPDATE, for å sikre at data forblir konsistent.
+Tapt oppdatering oppstår lett ved bruk av UPDATE uten kontrollmekanismer, mens INSERT-baserte løsninger unngår dette gjennom designet. Ved bruk av UPDATE er det derfor nødvendig å bruke låsing, som SELECT FOR UPDATE, for å sikre korrekt resultat.
 
-Jeg forenkler kanskje litt, men det virker ganske tydelig at riktig håndtering av samtidighet er helt avgjørende i databasesystemer. Det blir spesielt tydelig når man ser det skje i praksis gjennom programmet, ikke bare i teori.
+Dette illustrerer hvor viktig riktig håndtering av samtidighet er i databasesystemer, spesielt i praksis der flere brukere jobber parallelt.
 
 --- 
 
