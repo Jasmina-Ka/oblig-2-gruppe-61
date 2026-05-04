@@ -80,18 +80,6 @@ Oppgaven viser hvordan en godt strukturert datamodell kan oppnå høy datakvalit
 
 Jeg forenkler kanskje litt, men det virker ganske tydelig at en slik struktur gjør systemet lettere å jobbe med over tid, samtidig som det reduserer risikoen for feil i dataene.
 
-
----
-
-## Oppgave 3: Grunnleggende SQL spørringer
-
-### Rettelse
-
-I oppgaven ble det opprinnelig referert til delene **B.1:B.4** i forbindelse med GROUP BY-spørringer.  
-Dette er korrigert til kun **B.1**, siden det er denne delen som faktisk demonstrerer korrekt aggregering.
-
-Denne justeringen tydeliggjør hvilke spørringer som oppfyller kravene til oppgaven.
-
 ---
 
 ## Oppgave 5: Ytelsesanalyse med EXPLAIN ANALYZE og MATERIALIZED VIEW
